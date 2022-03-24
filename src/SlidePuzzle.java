@@ -41,12 +41,9 @@ public class SlidePuzzle extends Application {
         return componentHolder;
     }
 
-    private void positionPaneComponents( Pane pane ) {
-        pane.setPrefSize( 500, 500 );
-        mainCanvas.relocate(  85, 85 );
-        newGameButton.relocate( 100, 450 );
-        resetButton.relocate( 230, 450 );
-        solveButton.relocate( 330, 450 );
+    private Canvas setupCanvas() {
+        mainCanvas = new SlidePuzzleCanvas( CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE );
+        return mainCanvas;
     }
 
     private Button setupResetButton() {
@@ -64,9 +61,12 @@ public class SlidePuzzle extends Application {
         return solveButton;
     }
 
-    private Canvas setupCanvas() {
-        mainCanvas = new SlidePuzzleCanvas( CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE );
-        return mainCanvas;
+    private void positionPaneComponents( Pane pane ) {
+        pane.setPrefSize( 500, 500 );
+        mainCanvas.relocate(  85, 85 );
+        newGameButton.relocate( 100, 450 );
+        resetButton.relocate( 230, 450 );
+        solveButton.relocate( 330, 450 );
     }
 
     private void showMainWindow( Stage stage ) {

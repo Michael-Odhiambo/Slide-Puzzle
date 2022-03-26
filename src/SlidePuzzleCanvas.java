@@ -4,23 +4,41 @@ import javafx.scene.paint.Color;
 import javafx.scene.canvas.GraphicsContext;
 
 class SlidePuzzleCanvas extends Canvas {
-    private final Color BACKGROUND_COLOR = Color.rgb( 0, 204, 0 );
-    private final int NUMBER_OF_ROWS = 4;
-    private final int NUMBER_OF_COLUMNS = 4;
+    private SlidePuzzleBoard slidePuzzleBoard;
+    private Color backgroundColor;
     private GraphicsContext drawingArea = getGraphicsContext2D();
-    private int tileSize;
 
-    public SlidePuzzleCanvas( int canvasWidth, int canvasHeight, int tileSize ) {
+    public SlidePuzzleCanvas( SlidePuzzleBoard slidePuzzleBoard, Color backgroundColor,
+                              int canvasWidth, int canvasHeight ) {
         super( canvasWidth, canvasHeight );
-        this.tileSize = tileSize;
+        initializeSlidePuzzleBoard( slidePuzzleBoard );
+        initializeBackgroundColor( backgroundColor );
         draw();
+    }
+
+    private void initializeSlidePuzzleBoard( SlidePuzzleBoard board ) {
+        this.slidePuzzleBoard = board;
+    }
+
+    private void initializeBackgroundColor( Color backgroundColor ) {
+        this.backgroundColor = backgroundColor;
     }
 
     public void draw() {
         drawBackground();
-        drawRows();
-        drawColumns();
+        drawTiles();
         drawOutline();
+    }
+
+    private void drawBackground() {
+        drawingArea.setFill( backgroundColor );
+        drawingArea.fillRect( 0, 0, getWidth(), getHeight() );
+    }
+
+    private void drawTiles() {
+        for ( int row = 0; row < slidePuzzleBoard.getNumberOfRows(); row++ )
+            for ( int col = 0; col < slidePuzzleBoard.getNumberOfColumns(); col++ )
+                slidePuzzleBoard.getTile( row, col ).draw( drawingArea );
     }
 
     private void drawOutline() {
@@ -28,20 +46,8 @@ class SlidePuzzleCanvas extends Canvas {
         drawingArea.strokeRect( 0, 0, getWidth(), getHeight() );
     }
 
-    private void drawBackground() {
-        drawingArea.setFill( BACKGROUND_COLOR );
-        drawingArea.fillRect( 0, 0, getWidth(), getHeight() );
-    }
-
-    private void drawRows() {
-        drawingArea.setStroke( Color.BLACK );
-        for ( int row = 0; row < NUMBER_OF_ROWS; row++ )
-            drawingArea.strokeLine( 0, row*tileSize, getWidth(), row*tileSize );
-    }
-
-    private void drawColumns() {
-        for ( int column = 0; column < NUMBER_OF_COLUMNS; column++ )
-            drawingArea.strokeLine( column*tileSize, 0, column*tileSize, getHeight() );
+    public void drawTile( Tile tile ) {
+        tile.draw( drawingArea );
     }
 
 }

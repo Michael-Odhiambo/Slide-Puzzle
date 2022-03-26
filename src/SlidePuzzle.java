@@ -1,22 +1,32 @@
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyEvent;
 
 public class SlidePuzzle extends Application {
 
     private final int CANVAS_WIDTH = 320;
     private final int CANVAS_HEIGHT = 320;
     private final int TILE_SIZE = 80;
+    private final int NUMBER_OF_ROWS = 4;
+    private final int NUMBER_OF_COLUMNS = 4;
+    private final Color CANVAS_BACKGROUND_COLOR = Color.rgb( 3, 54, 73 );
 
-    private Canvas mainCanvas;
+    private enum DIRECTION { UP, DOWN, LEFT, RIGHT };
+    private SlidePuzzleBoard slidePuzzleBoard;
+    private SlidePuzzleCanvas mainCanvas;
     private Button resetButton;
     private Button newGameButton;
     private Button solveButton;
+    private DIRECTION direction;
+    private boolean slideInProgress;
 
     public void start( Stage stage ) {
         setupMainWindow( stage );
@@ -31,7 +41,45 @@ public class SlidePuzzle extends Application {
 
     private Scene setupScene() {
         Scene scene = new Scene( setupPane() );
+        scene.setOnKeyPressed( event -> keyPressed( event ) );
         return scene;
+    }
+
+    private void keyPressed( KeyEvent event ) {
+        if ( slideInProgress )
+            return;
+        slideInProgress = true;
+        KeyCode keyPressed = event.getCode();
+        direction = setDirection( keyPressed );
+        Tile blankTile = slidePuzzleBoard.getBlankTile();
+        System.out.println( "Blank tile row and column: " + blankTile.getRow() + "," + blankTile.getColumn() );
+        Tile slidingTile = getSlidingTileBasedOn( blankTile );
+        System.out.println( "Sliding tile row and column: " + slidingTile.getRow() + "," + slidingTile.getColumn() );
+        new SlideAnimationThread( slidingTile, blankTile ).start();
+    }
+
+    private DIRECTION setDirection( KeyCode keyPressed ) {
+        if ( keyPressed == KeyCode.UP )
+            return DIRECTION.UP;
+        else if ( keyPressed == KeyCode.DOWN )
+            return DIRECTION.DOWN;
+        else if ( keyPressed == KeyCode.LEFT )
+            return DIRECTION.LEFT;
+        else if ( keyPressed == KeyCode.RIGHT )
+            return DIRECTION.RIGHT;
+        return null;
+    }
+
+    private Tile getSlidingTileBasedOn( Tile blankTile ) {
+        if ( direction == DIRECTION.UP )
+            return slidePuzzleBoard.getTile( blankTile.getRow()+1, blankTile.getColumn() );
+        else if ( direction == DIRECTION.DOWN )
+            return slidePuzzleBoard.getTile( blankTile.getRow()-1, blankTile.getColumn() );
+        else if ( direction == DIRECTION.LEFT )
+            return slidePuzzleBoard.getTile( blankTile.getRow(), blankTile.getColumn()+1 );
+        else if ( direction == DIRECTION.RIGHT )
+            return slidePuzzleBoard.getTile( blankTile.getRow(), blankTile.getColumn()-1 );
+        return null;
     }
 
     private Pane setupPane() {
@@ -42,8 +90,13 @@ public class SlidePuzzle extends Application {
     }
 
     private Canvas setupCanvas() {
-        mainCanvas = new SlidePuzzleCanvas( CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE );
+        setupSlidePuzzleBoard();
+        mainCanvas = new SlidePuzzleCanvas( slidePuzzleBoard, CANVAS_BACKGROUND_COLOR, CANVAS_WIDTH, CANVAS_HEIGHT );
         return mainCanvas;
+    }
+
+    private void setupSlidePuzzleBoard() {
+        slidePuzzleBoard = new SlidePuzzleBoard( TILE_SIZE, NUMBER_OF_ROWS, NUMBER_OF_COLUMNS );
     }
 
     private Button setupResetButton() {
@@ -72,4 +125,69 @@ public class SlidePuzzle extends Application {
     private void showMainWindow( Stage stage ) {
         stage.show();
     }
+
+
+    private class SlideAnimationThread extends Thread {
+        Tile slidingTile;
+        Tile blankTile;
+
+        SlideAnimationThread( Tile slidingTile, Tile blankTile ) {
+            setDaemon( true );
+            this.slidingTile = slidingTile;
+            this.blankTile = blankTile;
+        }
+
+        public void run() {
+            int slidingTileRow = slidingTile.getRow();
+            int slidingTileColumn = slidingTile.getColumn();
+            slidePuzzleBoard.moveTile( slidingTileRow, slidingTileColumn,
+                    blankTile.getRow(), blankTile.getColumn() );
+            while ( slidingTile.getXCoordinate() != blankTile.getXCoordinate() ||
+                    slidingTile.getYCoordinate() != blankTile.getYCoordinate() ) {
+                if ( direction == DIRECTION.UP )
+                    slideTileUp();
+                else if ( direction == DIRECTION.DOWN )
+                    slideTileDown();
+                else if ( direction == DIRECTION.LEFT )
+                    slideTileLeft();
+                else
+                    slideTileRight();
+                System.out.println( "Sliding tile y coordinate: " + slidingTile.getYCoordinate() );
+                Platform.runLater( () -> mainCanvas.draw() );
+                try {
+                    Thread.sleep( 30 );
+                }
+                catch ( InterruptedException e ) {}
+            }
+            blankTile.setRow( slidingTileRow );
+            blankTile.setColumn( slidingTileColumn );
+            slideInProgress = false;
+        }
+
+        void slideTileUp() {
+            int yCoordinate = slidingTile.getYCoordinate();
+            yCoordinate--;
+            slidingTile.setYCoordinate( yCoordinate );
+        }
+
+        void slideTileDown() {
+            System.out.println( "Sliding down" );
+            int yCoordinate = slidingTile.getYCoordinate();
+            yCoordinate++;
+            slidingTile.setYCoordinate( yCoordinate );
+        }
+
+        void slideTileLeft() {
+            int xCoordinate = slidingTile.getXCoordinate();
+            xCoordinate--;
+            slidingTile.setXCoordinate( xCoordinate );
+        }
+
+        void slideTileRight() {
+            int xCoordinate = slidingTile.getXCoordinate();
+            xCoordinate++;
+            slidingTile.setXCoordinate( xCoordinate );
+        }
+    }
+
 }

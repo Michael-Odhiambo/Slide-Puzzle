@@ -1,13 +1,16 @@
 
 public class SlidePuzzleBoard {
     private Tile[][] slidePuzzleTiles;
+    private Tile[][] solvedBoard;
     private int numberOfRows, numberOfColumns;
     private int tileSize;
 
     public SlidePuzzleBoard( int tileSize, int numberOfRows, int numberOfColumns ) {
         initializeTileSize( tileSize );
         initializeRowsAndColumns( numberOfRows, numberOfColumns );
-        setupTiles();
+        solvedBoard = setupTiles();
+        slidePuzzleTiles = setupTiles();
+        scrambleBoard();
     }
 
     private void initializeTileSize( int tileSize ) {
@@ -19,18 +22,19 @@ public class SlidePuzzleBoard {
         this.numberOfColumns = numberOfColumns;
     }
 
-    private void setupTiles() {
-        slidePuzzleTiles = new Tile[numberOfRows][numberOfColumns];
+    private Tile[][] setupTiles() {
+        Tile[][] tiles = new Tile[numberOfRows][numberOfColumns];
         int counter = 1;
         for ( int row = 0; row < numberOfRows; row++ ) {
             for ( int column = 0; column < numberOfColumns; column++ ) {
                 if ( row == numberOfRows-1 && column == numberOfColumns-1 )
-                    slidePuzzleTiles[row][column] = new BlankTile( row, column, tileSize );
+                    tiles[row][column] = new BlankTile( row, column, tileSize );
                 else
-                    slidePuzzleTiles[row][column] = new Tile( counter, row, column, tileSize );
+                    tiles[row][column] = new Tile( counter, row, column, tileSize );
                 counter++;
             }
         }
+        return tiles;
     }
 
     public void moveTile( int fromRow, int fromColumn, int toRow, int toColumn ) {
@@ -55,6 +59,24 @@ public class SlidePuzzleBoard {
         return null;
     }
 
+    public void scrambleBoard() {
+        for ( int row = 0; row < numberOfRows; row++ ) {
+            for ( int column = 0; column < numberOfColumns; column++ ) {
+                int randomRow = (int)(Math.random()*numberOfRows);
+                int randomColumn = (int)(Math.random()*numberOfColumns);
+                Tile tile = getTile( row, column );
+                tile.setRow( randomRow );
+                tile.setColumn( randomColumn );
+                Tile randomTile = getTile( randomRow, randomColumn );
+                randomTile.setRow( row );
+                randomTile.setColumn( column );
+                slidePuzzleTiles[row][column] = randomTile;
+                slidePuzzleTiles[randomRow][randomColumn] = tile;
+
+            }
+        }
+    }
+
     public Tile getTile( int row, int column ) {
         return slidePuzzleTiles[row][column];
     }
@@ -71,7 +93,17 @@ public class SlidePuzzleBoard {
         return numberOfColumns;
     }
 
-    public int getTileSize() {
-        return tileSize;
+    public boolean hasWon() {
+        for (int row = 0; row < numberOfRows; row++) {
+            for (int column = 0; column < numberOfColumns; column++) {
+                if (slidePuzzleTiles[row][column].isBlank()) {
+                    if (!solvedBoard[row][column].isBlank())
+                        return false;
+                }
+                if (slidePuzzleTiles[row][column].getNumber() != solvedBoard[row][column].getNumber())
+                    return false;
+            }
+        }
+        return true;
     }
 }

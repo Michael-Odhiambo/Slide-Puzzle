@@ -1,6 +1,7 @@
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -27,6 +28,7 @@ public class SlidePuzzle extends Application {
     private Button solveButton;
     private DIRECTION direction;
     private boolean slideInProgress;
+    private Label message;
 
     public void start( Stage stage ) {
         setupMainWindow( stage );
@@ -88,7 +90,7 @@ public class SlidePuzzle extends Application {
     }
 
     private Pane setupPane() {
-        Pane componentHolder = new Pane( setupCanvas(), setupResetButton(), setupNewGameButton(), setupSolveButton() );
+        Pane componentHolder = new Pane( setupCanvas(), setupResetButton(), setupNewGameButton(), setupSolveButton(), setupMessage() );
         componentHolder.setStyle( "-fx-background-color:rgb( 3, 54, 73 );" );
         positionPaneComponents( componentHolder );
         return componentHolder;
@@ -119,12 +121,19 @@ public class SlidePuzzle extends Application {
         return solveButton;
     }
 
+    private Label setupMessage() {
+        message = new Label( "Game in progress." );
+        message.setTextFill( Color.WHITE );
+        return message;
+    }
+
     private void positionPaneComponents( Pane pane ) {
         pane.setPrefSize( 500, 500 );
         mainCanvas.relocate(  85, 85 );
         newGameButton.relocate( 100, 450 );
         resetButton.relocate( 230, 450 );
         solveButton.relocate( 330, 450 );
+        message.relocate( 50, 50 );
     }
 
     private void showMainWindow( Stage stage ) {
@@ -166,6 +175,8 @@ public class SlidePuzzle extends Application {
             blankTile.setRow( slidingTileRow );
             blankTile.setColumn( slidingTileColumn );
             slideInProgress = false;
+            if ( slidePuzzleBoard.hasWon() )
+                Platform.runLater( () -> message.setText( "You WON!!!" ) );
         }
 
         void slideTileUp() {

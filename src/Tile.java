@@ -4,12 +4,12 @@ import javafx.scene.paint.Color;
 
 public class Tile {
     private final Color tileColor = Color.rgb( 0, 204, 0 );
-    int row;
-    int column;
-    int xCoordinate;
-    int yCoordinate;
-    int tileSize;
-    int tileNumber;
+    private int row;
+    private int column;
+    private int xCoordinate;
+    private int yCoordinate;
+    private int tileSize;
+    private int tileNumber;
 
     public Tile( int tileNumber, int row, int column, int tileSize ) {
         this.tileNumber = tileNumber;

@@ -48,13 +48,13 @@ public class SlidePuzzle extends Application {
     private void keyPressed( KeyEvent event ) {
         if ( slideInProgress )
             return;
-        slideInProgress = true;
         KeyCode keyPressed = event.getCode();
         direction = setDirection( keyPressed );
+        if ( userDidNotPressOneOfTheArrowKeys() )
+            return;
+        slideInProgress = true;
         Tile blankTile = slidePuzzleBoard.getBlankTile();
-        System.out.println( "Blank tile row and column: " + blankTile.getRow() + "," + blankTile.getColumn() );
         Tile slidingTile = getSlidingTileBasedOn( blankTile );
-        System.out.println( "Sliding tile row and column: " + slidingTile.getRow() + "," + slidingTile.getColumn() );
         new SlideAnimationThread( slidingTile, blankTile ).start();
     }
 
@@ -68,6 +68,11 @@ public class SlidePuzzle extends Application {
         else if ( keyPressed == KeyCode.RIGHT )
             return DIRECTION.RIGHT;
         return null;
+    }
+
+
+    private boolean userDidNotPressOneOfTheArrowKeys() {
+        return direction == null;
     }
 
     private Tile getSlidingTileBasedOn( Tile blankTile ) {
@@ -152,10 +157,9 @@ public class SlidePuzzle extends Application {
                     slideTileLeft();
                 else
                     slideTileRight();
-                System.out.println( "Sliding tile y coordinate: " + slidingTile.getYCoordinate() );
                 Platform.runLater( () -> mainCanvas.draw() );
                 try {
-                    Thread.sleep( 30 );
+                    Thread.sleep( 10 );
                 }
                 catch ( InterruptedException e ) {}
             }
@@ -171,7 +175,6 @@ public class SlidePuzzle extends Application {
         }
 
         void slideTileDown() {
-            System.out.println( "Sliding down" );
             int yCoordinate = slidingTile.getYCoordinate();
             yCoordinate++;
             slidingTile.setYCoordinate( yCoordinate );
